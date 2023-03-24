@@ -66,8 +66,8 @@ const RegistrationScreen = ({ navigation }) => {
   }
 
   const [fontsLoaded] = useFonts({
-     'Roboto-Regular': require('../../fonts/Roboto-Regular.ttf'),
-     'Roboto-Bold': require('../../fonts/Roboto-Bold.ttf'),
+    'Roboto-Regular': require('../../fonts/Roboto-Regular.ttf'),
+    'Roboto-Bold': require('../../fonts/Roboto-Bold.ttf'),
    });
   
   const onLayoutRootView = async () => {
@@ -116,9 +116,9 @@ const RegistrationScreen = ({ navigation }) => {
   
   const plusIconChange = () => {
     if (plusIcon === 'plus') {
-    console.log("pick image")
-         pickImage()
-       }
+      console.log("pick image")
+      pickImage()
+    }
       deleteImage()
   }
 

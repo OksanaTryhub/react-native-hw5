@@ -2,7 +2,7 @@ import React from 'react'
 import { StyleSheet, TouchableOpacity } from 'react-native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import PostsScreen from '../mainScreens/PostsScreen';
+import PostsScreen from './PostsScreen';
 import CreatePostsScreen from '../mainScreens/CreatePostsScreen';
 import ProfileScreen from '../mainScreens/ProfileScreen';
 
@@ -16,16 +16,8 @@ const HomeScreen = ({ navigation }) => {
     <HomeTab.Navigator screenOptions={{tabBarShowLabel:false}}>
       <HomeTab.Screen name="Posts"
                 component={PostsScreen}
-                options={{
-                    headerTitle: 'Публикации',
-                    headerTitleAlign: 'center',
-                    headerTintColor: '#212121',
-                    headerRight: () => (
-                        <TouchableOpacity onPress={() => navigation.navigate("Login")} style={{ marginRight: 16 }}>
-                            <Feather name="log-out" size={24} color='#BDBDBD' />
-                        </TouchableOpacity>
-                    ),
-                    tabBarIcon: ({ focused, size, color }) => (<Feather name="grid" size={size} style={focused ? styles.focused : '#212121'} />)
+                options={{ headerShown: false,
+                tabBarIcon: ({ focused, size, color }) => (<Feather name="grid" size={size} style={focused ? styles.focused : '#212121'} />)
         }} />
       <HomeTab.Screen name="CreatePost"
                 component={CreatePostsScreen}
@@ -34,10 +26,11 @@ const HomeScreen = ({ navigation }) => {
                     headerTitleAlign: 'center',
                     headerTintColor: '#212121',
                     headerLeft: () => (
-                        <TouchableOpacity onPress={() => navigation.navigate("Posts")} style={{ marginLeft: 16 }}>
+                        <TouchableOpacity onPress={() => navigation.navigate("DefaultPostsScreen")} style={{ marginLeft: 16 }}>
                             <Feather name="arrow-left" size={24} color='#212121' />
                         </TouchableOpacity>
-                    ),
+                  ),
+                    tabBarStyle: ({ display: 'none' }),
                     tabBarIcon: ({ focused, size, color }) => (<AntDesign name="plus" size={18} style={focused ? styles.focused : '#212121'} />)
             }} />
       <HomeTab.Screen name="Profile"

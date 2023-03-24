@@ -1,5 +1,5 @@
-import React, {useState} from 'react'
- 
+import React, {useState, useEffect} from 'react'
+
 import {
   View,
   Text,
@@ -13,22 +13,50 @@ import {
   StyleSheet
 } from 'react-native'
 
-import * as ImagePicker from 'expo-image-picker';
-import { Asset } from "expo-asset";
-import * as FileSystem from 'expo-file-system';
+import { Camera } from 'expo-camera';
+import * as Location from 'expo-location';
 
 import { FontAwesome, Feather } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+
+SplashScreen.preventAutoHideAsync();
 
 const initialState = {
-  image: null,
+  myPhoto: null,
   title: '',
-  location: ''
+  location: '',
+  latitude: 0,
+  longitude: 0
+
 }
 
 const CreatePostsScreen = ({ navigation }) => {
   const [state, setState] = useState(initialState)
   const [isShownKeyboard, setIsShownKeyboard] = useState(false);
-  
+  const [camera, setCamera] = useState(null)
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Permission to access location was denied');
+        return;
+      }
+    })()
+  }, [])
+
+  const takeLocation = async () => {
+    const location = await Location.getCurrentPositionAsync();
+    setState((prevState) => ({ ...prevState, latitude: location.coords.latitude, longitude: location.coords.longitude }));
+  }
+
+  const takePhoto = async () => {
+    const photo = await camera.takePictureAsync();
+    setState((prevState) => ({ ...prevState, myPhoto: photo.uri }));
+    takeLocation()
+  }
+
   const inputHandler = (name, value) => {
     setState((prevState) => ({ ...prevState, [name]: value }));
     };
@@ -41,89 +69,85 @@ const CreatePostsScreen = ({ navigation }) => {
     Keyboard.dismiss()
   }
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      alert('Permission to access media library is required!');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      setState((prevState) => ({ ...prevState, image: uri }))
-     }
-  };
-
-  const deleteImage = async () => {
-    const { image } = state;
-  if (image) {
-    const asset = Asset.fromURI(image);
-    const fileUri = asset.localUri || asset.uri;
-
-    await FileSystem.deleteAsync(fileUri);
-    setState((prevState) => ({ ...prevState, image: null }))
-  }
-  };
-
   const savePost = () => {
-    console.log(state)
+    const { myPhoto } = state;
+    if (!myPhoto) {
+      return console.log('no photo')
+    }
+    navigation.navigate('DefaultPostsScreen', { state })
     setState(initialState)
+  }
+
+  const deleteAll = () => {
+    setState(initialState)
+  }
+  
+  const [fontsLoaded] = useFonts({
+     'Roboto-Regular': require('../../fonts/Roboto-Regular.ttf')
+   });
+  
+  const onLayoutRootView = async () => {
+    if (fontsLoaded) {
+      await SplashScreen.hideAsync();
+    }
+  };
+
+  if (!fontsLoaded) {
+    return null;
   }
  
   return (
     <TouchableWithoutFeedback onPress={() => keyboardHide()}>
-       <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : ''} keyboardVerticalOffset={100}>
-      <ScrollView>    
-        {state.image ? (
-            <View style={styles.photoWrap}>{state.image && <Image source={{ uri: state.image }}style={styles.image} />}</View>
-          ) : (
-            <View style={styles.placeholderImage}>
-              <View style={styles.iconWrap}>
-                <FontAwesome name="camera" size={24} color="#BDBDBD" />
+      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : ''} onLayout={onLayoutRootView}>
+        <ScrollView>   
+          <View style={styles.cameraContainer}>
+            {!state.myPhoto ? 
+              <Camera style={styles.camera} ref={setCamera}>
+                <TouchableOpacity style={styles.iconWrap} onPress={takePhoto}>
+                  <FontAwesome name="camera" size={24} color="#BDBDBD" />
+                </TouchableOpacity>
+              </Camera>
+              :
+              <View style={styles.previewPhotoContainer}>
+                  <Image source={{uri: state.myPhoto}} style={styles.previewPhoto}/>
               </View>
-            </View>
-          )}
-        <TouchableOpacity activeOpacity={0.6} onPress={() => pickImage()}>
-                {!state.image ? <Text style={styles.text}>Загрузите фото </Text> : <Text style={styles.text}> Редактировать фото </Text>}
-        </TouchableOpacity>
-        <View>
+            }
+          </View> 
+              {!state.myPhoto ?
+                <Text style={styles.text}>Загрузите фото </Text>
+                : <Text style={styles.text}> Редактировать фото </Text>}
+          <View>
             <TextInput style={styles.input}
               placeholderTextColor={"#BDBDBD"}
-                  placeholder="Название..."
-                  value={state.title}
-                  onChangeText={(value) => inputHandler('title', value)}
-                  onFocus={()=>showKeyboard()}
-          />
-          <View style={styles.inputWrap}>
-            <TouchableOpacity activeOpacity={0.7} >
-              <Feather name="map-pin" size={18} color="#BDBDBD" style={styles.locationIcon} />
-            </TouchableOpacity>
+              placeholder="Название..."
+              value={state.title}
+              onChangeText={(value) => inputHandler('title', value)}
+              onFocus={()=>showKeyboard()}
+            />
+            <View style={styles.inputWrap}>
+              <TouchableOpacity activeOpacity={0.7} >
+                <Feather name="map-pin" size={18} color="#BDBDBD" style={styles.locationIcon} />
+              </TouchableOpacity>
               <TextInput style={[styles.input, styles.inputLocation]}
                 placeholderTextColor={"#BDBDBD"}
-            placeholder="Местность..."
-            value={state.location}
-            onChangeText={(value) => inputHandler('location', value)}
-            onFocus={()=>showKeyboard()}
-          />
+                placeholder="Местность..."
+                value={state.location}
+                onChangeText={(value) => inputHandler('location', value)}
+                onFocus={()=>showKeyboard()}
+              />
             </View>
             <TouchableOpacity activeOpacity={0.7} style={styles.button}>
               <Text style={styles.buttonTitle} onPress={() => savePost() }>Опубликовать</Text>
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.6} onPress={() => deleteImage()} >
-                 <Feather name="trash-2" size={24} style={styles.trashIcon }/>
-          </TouchableOpacity>
-        </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+            <View style={styles.trashIconWrap }>
+              <TouchableOpacity activeOpacity={0.6} onPress={() => deleteAll()} >
+                <Feather name="trash-2" size={24} style={styles.trashIcon }/>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
-  
   )
 }
 
@@ -136,30 +160,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: '#ffffff'
   },
-  loadingPhoto: {
-    width: '100%',
-  },
-  photoWrap: {
+  cameraContainer: {
+    borderRadius: 10,
+    overflow: 'hidden',
     width: '100%',
     height: 240,
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginBottom:8
+    marginBottom: 8,
   },
-    image: {
-    flex: 1,
-    resizeMode: 'cover',
-    
-    },
-  placeholderImage: {
+  camera: {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
+    height: '100%',
+  },
+  previewPhotoContainer: {
+    width: '100%',
     height: 240,
-    backgroundColor: '#E8E8E8',
-    marginBottom: 8,
     borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'red',
+  },
+  previewPhoto: {
+    flex: 1,
+    resizeMode: 'cover',
+    width: '100%',
+    height: 240,
   },
   text: {
     color: "#BDBDBD",
@@ -173,6 +201,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     backgroundColor: '#ffffff',
+    opacity: 0.3,
     borderRadius: 60
   },
   input: {
@@ -216,5 +245,7 @@ const styles = StyleSheet.create({
     color: '#BDBDBD',        
     backgroundColor: "#F6F6F6",
     borderRadius: 20, 
-  }
+    alignSelf: 'center',
+    marginTop:100
+    }
   })

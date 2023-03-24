@@ -103,11 +103,11 @@ const ProfileScreen = ({ navigation }) => {
               <Text style={styles.titlePost}> Forest</Text>
               <View style= {styles.marksWrap}>
                 <View style= {styles.comments}>
-                  <Feather name="message-circle" size={18} color="#FF6C00" style={styles.messageIcon} />
+                  <Feather name="message-circle" size={18} style={{...styles.messageIcon, transform: [{ rotate: '-90deg' }]}} />
                   <Text>8</Text>
                 </View>
                 <View style= {styles.comments}>
-                  <Feather name="thumbs-up" size={18} color="#FF6C00" style={styles.messageIcon} />
+                  <Feather name="thumbs-up" size={18} style={styles.messageIcon} />
                   <Text>153</Text>
               </View>
               <View style= {styles.location}>
@@ -115,7 +115,7 @@ const ProfileScreen = ({ navigation }) => {
                 <Text style={styles.locationTitle }>Ukraine</Text>
               </View>
               </View>
-          </View>
+            </View>
           </View>
         
         </ImageBackground>
@@ -223,7 +223,8 @@ const styles = StyleSheet.create({
     marginBottom:8
   },
   messageIcon: {
-    marginRight: 6
+    color: "#FF6C00",
+    marginRight: 6,    
   },
   locationIcon:{   
      marginRight: 6

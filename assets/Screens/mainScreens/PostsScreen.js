@@ -1,48 +1,44 @@
 import React from 'react'
-import { View, Text, Image, StyleSheet } from 'react-native'
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
-const PostsScreen = ({ navigation }) => {
-  return (
-    <View style={styles.container}>
-      <View style={styles.info}>
-        <Image style={styles.avatarImage } />
-        <View>
-          <Text style={styles.name}> Natali Romanova </Text>
-          <Text style={styles.email}> email@example.com </Text>
-        </View>
-      </View>
-    </View>
-  )
+import { createStackNavigator } from '@react-navigation/stack'; 
+
+import DefaultPostsScreen from './../nestedScreens/DefaultPostsScreen';
+import CommentsScreen from './../nestedScreens/CommentsScreen';
+import MapScreen from './../nestedScreens/MapScreen';
+
+import { Feather } from '@expo/vector-icons'; 
+
+const NestedScreen = createStackNavigator()
+
+const PostsScreen = () => {
+  
+  return <NestedScreen.Navigator>
+    <NestedScreen.Screen name='DefaultPostsScreen'
+      component={DefaultPostsScreen}
+      options={{
+        headerTitle: 'Публикации',
+        headerTitleAlign: 'center',
+        headerTintColor: '#212121',
+        headerRight: () => (
+            <TouchableOpacity onPress={() => navigation.navigate("Login")} style={{ marginRight: 16 }}>
+                <Feather name="log-out" size={24} color='#BDBDBD' />
+            </TouchableOpacity>
+        )
+      }} />
+    <NestedScreen.Screen name='Comments'
+      component={CommentsScreen}
+      options={{
+        headerTitle: 'Комментарии',
+        headerTitleAlign: 'center',
+        headerTintColor: '#212121', }}/>
+    <NestedScreen.Screen name='Map'
+      component={MapScreen}
+      options={{
+        headerTitle: 'Карта',
+        headerTitleAlign: 'center',
+        headerTintColor: '#212121', }}/>
+  </NestedScreen.Navigator>
 }
 
 export default PostsScreen
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    display: 'flex',
-    paddingTop: 32,
-    paddingHorizontal: 16
-  },
-  info: {
-    flexDirection: 'row',
-    alignItems: 'center', 
-  },
-  avatarImage: {
-    width: 60,
-    height: 60,
-    borderWidth: 1,
-    borderColor: 'red',
-    borderRadius: 16,
-    marginRight:8
-  },
-  name: {
-    fontFamily: 'Roboto-Bold',
-    fontSize: 13
-  },
-  email: {
-    fontFamily: 'Roboto-Regular',
-    fontSize: 11
-  }
-})
-  

@@ -6,7 +6,7 @@ import useRoute from "./router";
  
 export default function App() {
   
-  const routing = useRoute();
+  const routing = useRoute({});
  
   return (
     <NavigationContainer>{routing}</NavigationContainer>
